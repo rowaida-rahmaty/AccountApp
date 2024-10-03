@@ -24,7 +24,7 @@ class ProductForm(FlaskForm):
     description = StringField('Product Description', validators=[DataRequired()])
     cost = DecimalField('cost', places=2, validators=[DataRequired(), NumberRange(min=0)])
     price = DecimalField('Price', places=2, validators=[DataRequired(), NumberRange(min=0)])
-    quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=0)])
+    quantity = IntegerField('Quantity')
     reorder_level = IntegerField('Reorder Level', validators=[DataRequired(), NumberRange(min=0)])
     submit = SubmitField('Add Product')
 
@@ -33,7 +33,7 @@ class ProductEditForm(FlaskForm):
     description = TextAreaField('Description', validators=[DataRequired()])
     cost = DecimalField('cost', places=2, validators=[DataRequired(), NumberRange(min=0)])# added 
     price = DecimalField('Price', places=2, validators=[DataRequired(), NumberRange(min=0)])
-    quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=0)])
+    quantity = IntegerField('Quantity', validators=[DataRequired(), NumberRange(min=0)], render_kw={'readonly': True}) #disabled since I don't want users to change the quantity randomly without a transaction happening 
     reorder_level = IntegerField('Reorder Level', validators=[DataRequired(), NumberRange(min=0)])
     submit = SubmitField('Update Product')
 

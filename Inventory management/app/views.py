@@ -27,7 +27,7 @@ def products():
         description = form.description.data
         cost = form.cost.data
         price = form.price.data
-        quantity = form.quantity.data
+        quantity = 0 #defualt quantity for product creation 
         reorder_level = form.reorder_level.data
 
         # Check if product already exists
@@ -265,25 +265,32 @@ def delete_product(product_id):
     return redirect(url_for('views.product_list'))
 
 
-
 @views.route('/download_product_history')
 @login_required
 def download_product_history():
     products = Product.query.filter_by(user_id=current_user.id).all()
     
-    # Create a CSV in-memory file
+    total_cash_outflows_all = 0
+    total_cogs_all = 0
+    total_inventory_cost_all = 0
+    total_revenue_all = 0
+    total_cash_movement = 0
+    
+    # Create CSV in-memory file
     output = StringIO()
     writer = csv.writer(output)
     
-    # Write CSV header
+    # Write CSV header for product history
     writer.writerow([
-        'Product Name', 'Cost per Unit', 'Sale Price per Unit', 'Purchases (Units)', 
-        'Products Sold (Units)', 'Cost of Goods Sold (COGS)', 'Total Revenue', 'Profit/Loss'
+        'Product Name', 'Cost per Unit', 'Sale Price per Unit', 'Units of Inventory Available',
+        'Cost of Inventory Available', 'Products Sold (Units)', 'Products Purchased (Units)',
+        'Cost of Goods Sold (COGS)', 'Total Revenue', 'Gross Profit'
     ])
     
+    # Write each product's transaction summary
     for product in products:
         transactions = InventoryTransaction.query.filter_by(product_id=product.id).order_by(InventoryTransaction.date.asc()).all()
-        
+
         total_cost = 0
         total_revenue = 0
         total_profit = 0
@@ -304,28 +311,51 @@ def download_product_history():
                 total_purchases += transaction.quantity_changed
 
         total_profit = total_revenue - total_cogs
+        inventory_cost = product.quantity * product.cost  # Cost of remaining inventory
         
+        # Update overall summary
+        total_cash_outflows_all += total_cost
+        total_cogs_all += total_cogs
+        total_inventory_cost_all += inventory_cost
+        total_revenue_all += total_revenue
+        total_cash_movement = total_revenue_all - total_cash_outflows_all
+        
+        # Write product history row
         writer.writerow([
-            product.name, product.cost, product.price, total_purchases, total_sold,
-            total_cogs, total_revenue, total_profit
+            product.name, product.cost, product.price, product.quantity,
+            inventory_cost, total_sold, total_purchases, total_cogs,
+            total_revenue, total_profit
         ])
     
+    # Add an empty line to separate product data from the summary
+    writer.writerow([])
+    
+    # Add a separate section header for the overall summary
+    writer.writerow(['Overall Summary'])
+    
+    # Add the overall summary data as distinct rows
+    writer.writerow(['Total Cash Outflows (Inventory Purchase Cost)', total_cash_outflows_all])
+    writer.writerow(['Total COGS', total_cogs_all])
+    writer.writerow(['Remaining Inventory (based on purchase cost)', total_inventory_cost_all])
+    writer.writerow(['Total Cash Inflows (Revenue)', total_revenue_all])
+    writer.writerow(['Total Movement In Cash (Inflow - Outflow)', total_cash_movement])
+    
+    # Send CSV as a response
     output.seek(0)
     return Response(
-        output,
+        output.getvalue(),
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment;filename=product_history.csv"}
     )
 
-
-
 @views.route('/download_product_transactions/<int:product_id>')
 @login_required
 def download_product_transactions(product_id):
+    # Retrieve product and transactions
     product = Product.query.filter_by(id=product_id, user_id=current_user.id).first_or_404()
     transactions = InventoryTransaction.query.filter_by(product_id=product_id).order_by(InventoryTransaction.date.asc()).all()
-    
-    # Create a CSV in-memory file
+
+    # Create CSV in-memory file
     output = StringIO()
     writer = csv.writer(output)
     
@@ -334,6 +364,7 @@ def download_product_transactions(product_id):
         'Date', 'Type', 'Quantity', 'Unit Cost', 'Sale Price', 'Total Cost', 'Total Sale', 'Total Profit/Loss'
     ])
     
+    # Write each transaction to the CSV
     for transaction in transactions:
         if transaction.transaction_type == 'IN':
             unit_cost = product.cost
@@ -361,6 +392,7 @@ def download_product_transactions(product_id):
             total_profit_loss
         ])
     
+    # Send CSV as a response
     output.seek(0)
     return Response(
         output.getvalue(),
