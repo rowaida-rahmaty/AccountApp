@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Products History{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="width:max-content;">
+    <h2>Product Transaction History</h2>
+
+    <a href="{{ url_for('views.download_product_history') }}" class="btn btn-success mb-3">Download Product History</a>
+    
+    <table class="table table-striped" style="width: fit-content; text-align:center;">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Cost per Unit</th>
+                <th>Sale Price per Unit</th>
+                <th>Units of Inventory Available</th>
+                <th>Cost of Inventory Available</th>
+                <th>Products Sold (Units)</th>
+                <th>Products Purchased (Units)</th>
+                <th>Cost of Goods Sold (COGS)</th>
+                <th>Total Revenue</th>
+                <th>Gross Profit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for summary in product_summaries %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('views.product_transaction_history', product_id=summary.product.id) }}">
+                        {{ summary.product.name }}
+                    </a>
+                </td>
+                <td>${{ summary.product.cost }}</td>
+                <td>${{ summary.product.price }}</td>
+                <td>{{ summary.product.quantity }}</td>
+                <td>${{ summary.inventory_cost }}</td>
+                <td>{{ summary.total_sold }}</td>
+                <td>{{ summary.total_purchased }}</td>
+                <td>${{ summary.total_cogs }}</td>
+                <td>${{ summary.total_revenue }}</td>
+                <td>
+                    {% if summary.total_profit >= 0 %}
+                        ${{ summary.total_profit }}
+                    {% else %}
+                        ${{ summary.total_profit }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary mt-4">
+        <h3>Overall Summary</h3>
+        <p><strong>Total Cash Outflows (Inventory Purchase Cost):</strong> ${{ total_cash_outflows_all }}</p>
+        <p><strong>Total COGS:</strong> ${{ total_cogs_all }}</p>
+        <p><strong>Remaining Inventory (based on purchase cost):</strong> ${{ total_inventory_cost_all }}</p>
+        <p><strong>Total Cash Inflows (Revenue):</strong> ${{ total_revenue_all }}</p>
+        <p><strong>Total Movement In Cash (Inflow - Outflow):</strong> 
+            {% if total_cash_movement >= 0 %}
+                ${{ total_cash_movement }}
+            {% else %}
+                ${{ total_cash_movement }}
+            {% endif %}
+        </p>
+    </div>
+    
+{% endblock %}
