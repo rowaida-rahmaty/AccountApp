@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Product Transaction History{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Transaction History for {{ product.name }}</h2>
+    <br>
+    <br>
+    <br>
+
+    <a href="{{ url_for('views.download_product_transactions', product_id=product.id) }}" class="btn btn-success mb-3">Download Transaction History</a>
+    
+    <table class="table table-striped" >
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>Unit Cost</th>
+                <th>Sale Price</th>
+                <th>Total Cost</th>
+                <th>Total Sale</th>
+                <th>Total Profit/Loss</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ transaction.transaction_type }}</td>
+                <td>{{ transaction.quantity_changed }}</td>
+                
+                <!-- Show Unit Cost and Total Cost only for IN transactions -->
+                <td>
+                    {% if transaction.transaction_type == 'IN' %}
+                        ${{ product.cost }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+
+                <!-- Show Sale Price and Total Sale only for OUT transactions -->
+                <td>
+                    {% if transaction.transaction_type == 'OUT' %}
+                        ${{ product.price }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+
+                <!-- Calculate and show Total Cost for IN transactions -->
+                <td>
+                    {% if transaction.transaction_type == 'IN' %}
+                        ${{ transaction.quantity_changed * product.cost }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+
+                <!-- Calculate and show Total Sale for OUT transactions -->
+                <td>
+                    {% if transaction.transaction_type == 'OUT' %}
+                        ${{ transaction.quantity_changed * product.price }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+
+                <!-- Calculate and show Profit/Loss only for OUT transactions -->
+                <td>
+                    {% if transaction.transaction_type == 'OUT' %}
+                        ${{ (transaction.quantity_changed * product.price) - (transaction.quantity_changed * product.cost) }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ url_for('views.product_history') }}" class="btn btn-secondary mt-3">Back to All Products</a>
+</div>
+{% endblock %}

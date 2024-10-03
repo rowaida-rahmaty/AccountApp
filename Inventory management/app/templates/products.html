@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<div class="mx-auto" style="width:900px; border-radius:10px ; background-color: rgba(3, 63, 100, 0.623);">
+    <h2 align="center" style="color: aliceblue; margin: 20px; padding: 10px;">Add a New Product</h2>
+</div>
+<div class="mx-auto" style="width:900px; border-radius:10px ;">
+    <form method="POST" action="{{ url_for('views.products') }}">
+        {{ form.hidden_tag() }} <!-- CSRF token -->
+    
+        <div class="form-group" style="padding: 5px;">
+            <label for="name" style="color: rgb(0, 0, 0);">Product Name</label>
+            {{ form.name(class="form-control", id="name") }}
+        </div>
+        <div class="form-group" style="padding: 5px;">
+            <label for="description" style="color: rgb(0, 0, 0);">Product Description</label>
+            {{ form.description(class="form-control", id="description") }}
+        </div>
+        <div class="form-group" style="padding: 5px;">
+            <label for="cost" style="color: rgb(0, 0, 0);">Cost</label>
+            {{ form.cost(class="form-control", id="cost") }}
+        </div>
+        <div class="form-group" style="padding: 5px;">
+            <label for="price" style="color: rgb(0, 0, 0);">Price</label>
+            {{ form.price(class="form-control", id="price") }}
+        </div>
+        <div class="form-group" style="padding: 5px;">
+            <label for="quantity" style="color: rgb(0, 0, 0);">Quantity</label>
+            {{ form.quantity(class="form-control", id="quantity") }}
+        </div>
+        <div class="form-group" style="padding: 5px;">
+            <label for="reorder_level" style="color: rgb(0, 0, 0);">Reorder Level</label>
+            {{ form.reorder_level(class="form-control", id="reorder_level") }}
+        </div>
+        <div class="form-group" style="padding: 5px; text-align: center;">
+            <button type="submit" class="btn btn-primary" style="color: rgb(255, 251, 251); background-color:rgba(3, 63, 100, 0.623); padding: 10px 20px;">Add Product</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
